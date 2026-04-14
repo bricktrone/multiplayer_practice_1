@@ -3,37 +3,42 @@ using UnityEngine;
 
 public class PlayerSpawn : NetworkBehaviour
 {
-    public NetworkVariable<float> positionX = new(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
     
     public override void OnNetworkSpawn()
     {
-        positionX.OnValueChanged += OnPositionChange;
         if (IsOwner)
         {
-            SetRandomPositionServerRpc();
+            SetRandomPositionServerRpc(OwnerClientId);
             FindFirstObjectByType<PlayerCombat>().AttackingPlayer = GetComponent<PlayerStats>();
         }
     }
 
-    public override void OnNetworkDespawn()
+    [ServerRpc(RequireOwnership = false)]
+    public void SetRandomPositionServerRpc(ulong playerId)
     {
-        positionX.OnValueChanged -= OnPositionChange;
-    }
-    
-    private void OnPositionChange(float prValue, float newValue)
-    {
-        Vector3 pos = transform.position;
-        pos.x = newValue;
-        transform.position = pos;
+
+        Vector2 newPosition = new Vector2(Random.Range(-9f, 9f), Random.Range(-9f, 9f));
+        
+        GetRandomPositionClientRpc(newPosition, new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { playerId }
+            }
+        });
     }
 
-    [ServerRpc]
-    private void SetRandomPositionServerRpc()
+    [ClientRpc]
+    private void GetRandomPositionClientRpc(Vector2 value, ClientRpcParams clientRpcParams = default)
     {
-        positionX.Value = Random.Range(-9f, 10f);
+        if (!IsOwner) return;
+        CharacterController controller = GetComponent<CharacterController>();
+        controller.enabled = false;
+        Vector3 pos = transform.position;
+        pos.y = 1;
+        pos.x = value.x;
+        pos.z = value.y;
+        transform.position = pos;
+        controller.enabled = true;
     }
 }

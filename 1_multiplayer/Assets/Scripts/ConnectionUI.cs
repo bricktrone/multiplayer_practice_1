@@ -5,7 +5,8 @@ using UnityEngine;
 public class ConnectionUI : MonoBehaviour
 {
     [SerializeField] private TMP_InputField _nicknameInput;
-    [SerializeField] private GameObject _canvas;
+    [SerializeField] private GameObject _loadCanvas;
+    [SerializeField] private GameObject _gameCanvas;
 
     // Сохраняем ник локально до появления сетевого объекта игрока.
     public static string PlayerNickname { get; private set; } = "Player";
@@ -35,6 +36,7 @@ public class ConnectionUI : MonoBehaviour
 
     private void HideCanvas()
     {
-        _canvas.SetActive(false);
+        _gameCanvas.SetActive(true);
+        _loadCanvas.SetActive(false);
     }
 }
