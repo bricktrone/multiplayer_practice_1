@@ -1,4 +1,4 @@
-using Unity.Netcode;
+using FishNet.Object;
 using UnityEngine;
 
 public class PlayerCombat : NetworkBehaviour
@@ -7,15 +7,15 @@ public class PlayerCombat : NetworkBehaviour
     public void TryAttack(int damage, PlayerStats target)
     {
         if (target == null) return;
-        DealDamageServerRpc(target.NetworkObjectId, AttackingPlayer.NetworkObjectId, damage);
+        DealDamageServerRpc(target.OwnerId, AttackingPlayer.OwnerId, damage);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void DealDamageServerRpc(ulong targetId, ulong attackerId, int damage)
+    private void DealDamageServerRpc(int targetId, int attackerId, int damage)
     {
-        if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(targetId, out NetworkObject targetObject))
+        if (!NetworkManager.ServerManager.Objects.Spawned.TryGetValue(targetId, out NetworkObject targetObject))
             return;
-        if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(attackerId, out NetworkObject attackingObject))
+        if (!NetworkManager.ServerManager.Objects.Spawned.TryGetValue(attackerId, out NetworkObject attackingObject))
             return;
         
         PlayerStats targetPlayer = targetObject.GetComponent<PlayerStats>();

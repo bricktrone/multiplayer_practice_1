@@ -1,4 +1,4 @@
-using Unity.Netcode;
+using FishNet.Object;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -21,12 +21,12 @@ namespace DefaultNamespace
             if (target == null) return;
 
             // Не наносим урон самому себе
-            if (target.OwnerClientId == OwnerClientId) return;
+            if (target.OwnerId == OwnerId) return;
 
             int newHp = Mathf.Max(0, target.HP.Value - _damage);
             target.HP.Value = newHp;
             
-            NetworkObject.Despawn(destroy: true);
+            ServerManager.Despawn(gameObject);
         }
     }
 }

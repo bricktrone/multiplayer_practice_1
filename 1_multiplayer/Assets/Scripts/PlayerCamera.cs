@@ -1,4 +1,4 @@
-using Unity.Netcode;
+using FishNet.Object;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -9,9 +9,9 @@ namespace DefaultNamespace
 
         private Camera _camera;
 
-        public override void OnNetworkSpawn()
+        public override void OnStartNetwork()
         {
-            if (!IsOwner)
+            if (!Owner.IsLocalClient)
             {
                 enabled = false;
                 return;

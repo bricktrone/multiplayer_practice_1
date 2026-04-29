@@ -1,5 +1,6 @@
 using System;
-using Unity.Netcode;
+using FishNet.Object;
+using FishNet.Object.Synchronizing;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,13 +13,9 @@ namespace DefaultNamespace
         [SerializeField] private float _cooldown = 0.4f;
         [SerializeField] private int _maxAmmo = 10;
 
-        private float _lastShotTime;
+        private float _lastShotTime; 
 
-        private NetworkVariable<int> _currentAmmo = new(
-            0,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
+        private readonly SyncVar<int> _currentAmmo = new SyncVar<int>();
 
         // IsAlive и связь с PlayerNetwork настраивается студентом
         private PlayerStats _playerStats;
@@ -26,21 +23,28 @@ namespace DefaultNamespace
 
         private InputSystem_Actions _input;
 
-        public override void OnNetworkSpawn()
+
+        public override void OnStartNetwork()
         {
+            _currentAmmo.OnChange += OnAmmoChange;
+            
             _gameUI = FindFirstObjectByType<GameUI>();
             _playerStats = GetComponent<PlayerStats>();
-            if (!IsOwner) return;
-            _currentAmmo.OnValueChanged += OnAmmoChange;
+        }
+        
+        public override void OnStartClient()
+        {
+            if (!Owner.IsLocalClient) return;
             SetMaxAmmoServerRpc();
         }
 
-        public override void OnNetworkDespawn()
+
+        public override void OnStopNetwork()
         {
-            _currentAmmo.OnValueChanged -= OnAmmoChange;
+            _currentAmmo.OnChange -= OnAmmoChange;
         }
 
-        private void OnAmmoChange(int oldValue, int newValue)
+        private void OnAmmoChange(int oldValue, int newValue, bool asServer)
         {
             if (!IsOwner) return;
             _gameUI.ChangeBulletCount(newValue);
@@ -48,6 +52,7 @@ namespace DefaultNamespace
 
         private void Awake()
         {
+            _currentAmmo.Value = 0;
             _input = new InputSystem_Actions();
         }
 
@@ -76,8 +81,7 @@ namespace DefaultNamespace
         }
 
         [ServerRpc]
-        private void ShootServerRpc(Vector3 pos, Vector3 dir,
-            ServerRpcParams rpc = default)
+        private void ShootServerRpc(Vector3 pos, Vector3 dir)
         {
             // 1. Жив ли игрок?
             if (!_playerStats.IsAlive.Value) return;
@@ -93,8 +97,7 @@ namespace DefaultNamespace
 
             GameObject projectileObject = Instantiate(_projectilePrefab, pos + dir * 1.2f,
                 Quaternion.LookRotation(dir));
-            NetworkObject projectileNetwork = projectileObject.GetComponent<NetworkObject>();
-            projectileNetwork.SpawnWithOwnership(rpc.Receive.SenderClientId);
+            ServerManager.Spawn(projectileObject, Owner);
         }
     }
 }

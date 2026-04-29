@@ -1,4 +1,4 @@
-using Unity.Netcode;
+using FishNet.Object;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -32,7 +32,7 @@ namespace DefaultNamespace
             player.HP.Value = Mathf.Min(100, player.HP.Value + _healAmount);
 
             _manager.OnPickedUp(_spawnPosition);
-            NetworkObject.Despawn(destroy: true);
+            ServerManager.Despawn(gameObject);
         }
     }
 }

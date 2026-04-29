@@ -1,5 +1,5 @@
 using System;
-using Unity.Netcode;
+using FishNet.Object;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -38,10 +38,10 @@ namespace DefaultNamespace
             _input.Disable();
         }
         
-        public override void OnNetworkSpawn()
+        public override void OnStartNetwork()
         {
             _playerStats = GetComponent<PlayerStats>();
-            if (!IsOwner)
+            if (!Owner.IsLocalClient)
             {
                 enabled = false;
                 return;

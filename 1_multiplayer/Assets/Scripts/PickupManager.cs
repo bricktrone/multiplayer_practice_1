@@ -1,6 +1,7 @@
-using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
+using FishNet.Managing;
+using FishNet.Object;
 
 namespace DefaultNamespace
 {
@@ -11,11 +12,11 @@ namespace DefaultNamespace
         [SerializeField] private Transform[] _spawnPoints;
         [SerializeField] private float _respawnDelay = 10f;
 
-        public override void OnNetworkSpawn()
+        public override void OnStartNetwork()
         {
             Debug.Log("heal manager started");
             // Менеджер активен только на сервере/хосте
-            if (!NetworkManager.Singleton.IsServer) return;
+            if (!ServerManager.NetworkManager.IsServerStarted) return;
             SpawnAll();
             Debug.Log("heal manager spawned");
         }
@@ -41,7 +42,7 @@ namespace DefaultNamespace
         {
             GameObject healObject = Instantiate(_healthPickupPrefab, position, Quaternion.identity);
             healObject.GetComponent<HealthPickup>().Init(this);
-            healObject.GetComponent<NetworkObject>().Spawn();
+            ServerManager.Spawn(healObject);
         }
     }
 }

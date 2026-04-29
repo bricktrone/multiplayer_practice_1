@@ -1,35 +1,34 @@
-using Unity.Netcode;
+using FishNet.Connection;
+using FishNet.Object;
 using UnityEngine;
 
 public class PlayerSpawn : NetworkBehaviour
 {
     
-    public override void OnNetworkSpawn()
+    public override void OnStartClient()
     {
         if (IsOwner)
         {
-            SetRandomPositionServerRpc(OwnerClientId);
+            SetRandomPositionServerRpc(OwnerId);
             FindFirstObjectByType<PlayerCombat>().AttackingPlayer = GetComponent<PlayerStats>();
         }
     }
 
+
     [ServerRpc(RequireOwnership = false)]
-    public void SetRandomPositionServerRpc(ulong playerId)
+    public void SetRandomPositionServerRpc(int playerId)
     {
 
         Vector2 newPosition = new Vector2(Random.Range(-9f, 9f), Random.Range(-9f, 9f));
         
-        GetRandomPositionClientRpc(newPosition, new ClientRpcParams
+        if (ServerManager.Clients.TryGetValue(playerId, out NetworkConnection connection))
         {
-            Send = new ClientRpcSendParams
-            {
-                TargetClientIds = new ulong[] { playerId }
-            }
-        });
+            GetRandomPositionClientRpc(connection, newPosition);
+        }
     }
 
-    [ClientRpc]
-    private void GetRandomPositionClientRpc(Vector2 value, ClientRpcParams clientRpcParams = default)
+    [TargetRpc]
+    private void GetRandomPositionClientRpc(NetworkConnection target, Vector2 value)
     {
         if (!IsOwner) return;
         CharacterController controller = GetComponent<CharacterController>();
