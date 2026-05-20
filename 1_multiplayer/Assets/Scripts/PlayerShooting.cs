@@ -97,6 +97,7 @@ namespace DefaultNamespace
 
             GameObject projectileObject = Instantiate(_projectilePrefab, pos + dir * 1.2f,
                 Quaternion.LookRotation(dir));
+            projectileObject.GetComponent<Projectile>().Initialize(_playerStats);
             ServerManager.Spawn(projectileObject, Owner);
         }
     }

@@ -25,6 +25,8 @@ public class PlayerStats : NetworkBehaviour
     public readonly SyncVar<int> HP = new SyncVar<int>(100);
     
     public readonly SyncVar<bool> IsAlive = new SyncVar<bool>(true);
+
+    public readonly SyncVar<int> Score = new SyncVar<int>(0);
     
     private readonly SyncVar<float> _respawnTime = new SyncVar<float>(-1);
 
